@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <div id="bg" >
+        <div id="login" >
+            <div>
+                <input type="text" id="classNumber" placeholder="Class Number" value=""/>
+                <input type="text" id="IDField" placeholder="UID" value="" />
+                <input type="text" id="passwordField" placeholder="Password" value=""/>
+                <button id="Enter" onclick="sendLogging()">Log in</button>
+            </div>
+            <p id="logMessage"></p>
+        </div>
+
+        <!--對話介面-->        
+        <div id="app" style="display:none">
+            <ul id="messageBox" ref="messageBox">
+                <li v-for="(m, index) in messages" :key="index" :class="{ 'current-user': m.isCurrentUser, 'other-user': !m.isCurrentUser }">
+                    <h4>{{ m.message }} <span>-- {{ m.name }}</span></h4>
+                </li>
+            </ul>            
+            <p id="userInfo">UID: </p>
+            <input v-model="temp.message" placeholder="訊息" @keydown.enter="sendMessage" ref="messageInput" />
+            <!--<input v-model="temp.name" placeholder="你是誰？" @keydown.enter="sendMessage"/>-->
+            <button @click="sendMessage">送出</button>
+        </div>
+    </div>
+
+    <script>
+        // 檢查連接
+        const socket = io("http://localhost:4040");
+        const login ={id:"",pass:""};
+        socket.on("connect", () => {
+            console.log("Connected to server with ID:", socket.id);
+        });
+        socket.on("connectionError", (error) => {
+            alert("Connection error : "+ error.message);
+        });
+
+        // 在用戶即將關閉視窗時通知伺服器
+        window.addEventListener("beforeunload", () => {
+            if (socket.connected) {
+                socket.emit("userDisconnect", { userId: login.id, socketId:socket.id });
+                socket.close(); // 關閉 Socket 連接
+            }
+        });
+
+        // 檢查登入
+        document.getElementById("login").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                sendLogging();
+                //console.log("Enter key pressed");
+            }
+        });
+
+        function sendLogging() {
+            const classNumber = document.getElementById("classNumber").value.trim();
+            const userID = document.getElementById("IDField").value.trim();
+            const password = document.getElementById("passwordField").value.trim();
+        
+            if (!classNumber || !userID || !password) {
+                alert("請填寫所有欄位！");
+                return;
+            }
+        
+            // 打包要檢查的數值
+            const loginData = { classNumber, userID, password };
+        
+            // 傳送登入需求
+            socket.emit("loginRequest", loginData);
+        
+            // 等待回應
+            socket.on("loginResponse", (response) => {
+                if (response.success) {
+                    document.getElementById("logMessage").innerHTML = "Login Success.";
+                    login.id = response.id;
+        
+                    document.getElementById("userInfo").innerHTML += String(login.id);
+                    setTimeout(() => {
+                        document.getElementById("app").style.display = "block";
+                        document.getElementById("login").style.display = "none";
+                    }, 1000); //等待1秒
+                    socket.emit("userDisconnect",{userId:"System", socketId:socket.id})
+                    socket.close();
+
+                    // 初始化 Vue 實例並連接 WebSocket
+                    initVueInstance(response.id);
+                } else {
+                    alert(`${response.field} Error: ${response.message}`);
+                    document.getElementById("logMessage").innerHTML = response.message;
+                }
+            });
+        }
+
+        function initVueInstance(uid) {
+            new Vue({
+                el: "#app",
+                data: {
+                    messages: [{ message: "Welcome to chatroom.", name: "System", isCurrentUser: null }],
+                    temp: { message: "", name: "" },
+                    socket: null,
+                    uid: uid, // 將 UID 傳入 Vue 實例
+                },
+                mounted() {
+                    // 在 Vue 實例初始化後建立 Socket.IO 連接
+                    this.socket = io("http://localhost:4040");
+        
+                    // 接收所有訊息
+                    this.socket.on("allMessage", (message) => {
+                        message.isCurrentUser = message.socketId === this.socket.id; // 標記是否為當前使用者
+                        this.messages.push(message);
+                    });
+        
+                    // 用戶斷開時的處理
+                    this.socket.on("userLeft", (data) => {
+                        this.messages.push({ message: data.message, name: "System", isCurrentUser: false });
+                    });
+        
+                    // 通知伺服器用戶已連接
+                    this.socket.emit("userConnected", { userId: this.uid });
+                    window.addEventListener("beforeunload", this.handleBeforeUnload);
+                },
+                watch: {
+                    messages() {
+                        this.$nextTick(() => {
+                            this.scrollToBottom(); // 在 DOM 更新後滾動到底部
+                        });
+                    },
+                },
+                methods: {
+                    sendMessage() {
+                        if (this.temp.message) {
+                            const newMessage = {
+                                message: this.temp.message,
+                                name: this.uid,
+                                socketId: this.socket.id,
+                            };
+        
+                            if (this.temp.message.toLowerCase() === "exit") {
+                                this.socket.emit("userDisconnect", { userId: this.uid , socketId: this.socket.id});
+                                this.socket.close();
+                                alert("You have left the chat.");
+                                return;
+                            }
+        
+                            this.socket.emit("sendMessage", newMessage);
+                            this.temp.message = "";
+                        } else {
+                            alert("請輸入訊息！");
+                        }
+                        this.$nextTick(() => {
+                            this.$refs.messageInput.focus();
+                        });
+                    },
+                    scrollToBottom() {
+                        const messageBox = this.$refs.messageBox;
+                        if (messageBox) {
+                            messageBox.scrollTop = messageBox.scrollHeight;
+                        }
+                    },
+                    handleBeforeUnload(event) {
+                        // 通知伺服器使用者即將離線
+                        if (this.socket && this.socket.connected) {
+                            this.socket.emit("userDisconnect", { userId: this.uid, socketId: this.socket.id });
+                        }
+                        // 自定義提示訊息（大多數現代瀏覽器不支持了，但依然可以觸發事件）
+                        //event.preventDefault();
+                        event.returnValue = ""; // 此行確保 `beforeunload` 觸發
+                    },
+                },
+            });
+        }
+    </script>
+</body>
+</html>

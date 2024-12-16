@@ -1,0 +1,88 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f5f5f5; /* 淺灰色背景 */
+    background: url("./1358383.png");
+    background-size: none;
+    background-position: 50% 20%;
+    background-repeat: no-repeat;
+}
+
+input {
+    padding: 8px;
+    font-size: 16px;
+    margin-right: 10px;
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 15px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#app {
+    position: absolute;
+}
+
+/* 聊天窗 */
+#messageBox {
+    opacity: 0.7;
+    background-color: rgb(159, 184, 234); /* 背景颜色 */
+    height: 300px; /* 固定高度 */
+    width: 400px; /* 固定寬度 */
+    border: 1px solid #ccc; /* 添加边框 */
+    border-radius: 10px; /* 圆角 */
+    overflow-y: auto; /* 如果消息超出高度，添加滚动条 */
+    padding: 10px; /* 内边距，避免文字贴边 */
+    display: flex;
+    flex-direction: column; /* 按列呈現 */
+}
+
+/* 訊息樣式 */
+#messageBox li {
+    list-style-type: none; /* 移除默认的列表样式 */
+    margin-bottom: 10px; /* 訊息間距 */
+    word-wrap: break-word; /* 长消息自动换行 */
+    padding: 5px 10px; /* 内边距，增强可读性 */
+    background-color: white; /* 背景颜色 */
+    border-radius: 5px; /* 邊框圓角 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 添加陰影 */
+    /*align-self: flex-start; /* 默認訊息靠左 */
+}
+
+/* 用户名样式 */
+#messageBox li span {
+    color: #666; /* 用戶名顏色 */
+    font-size: 0.9em; /* 調整字體大小 */
+}
+
+.current-user {
+    align-self: flex-end; /* 強制訊息靠右對齊 */
+    text-align: right; 
+    background-color: #176be1; /* 當前使用者訊息背景顏色 */
+    color: rgb(0, 0, 0); /* 確保文字顏色對比清晰 */
+    padding: 5px;
+    margin: 5px;
+    border-radius: 10px;
+}
+
+.other-user {
+    align-self: flex-start; /* 強制訊息靠左對齊 */
+    text-align: left; 
+    background-color: #f4d4d4; /* 其他使用者訊息背景顏色 */
+    color: black; /* 確保文字顏色對比清晰 */
+    padding: 5px;
+    margin: 5px;
+    border-radius: 10px;
+}
