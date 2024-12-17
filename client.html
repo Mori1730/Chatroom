@@ -82,9 +82,8 @@
             socket.on("loginResponse", (response) => {
                 if (response.success) {
                     document.getElementById("logMessage").innerHTML = "Login Success.";
-                    login.id = response.id;
         
-                    document.getElementById("userInfo").innerHTML += String(login.id);
+                    document.getElementById("userInfo").innerHTML += String(response.id);
                     setTimeout(() => {
                         document.getElementById("app").style.display = "block";
                         document.getElementById("login").style.display = "none";
