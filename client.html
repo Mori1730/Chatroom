@@ -13,7 +13,7 @@
     <div id="bg" >
         <div id="login" >
             <div>
-                <input type="text" id="classNumber" placeholder="Class Number" value=""/>
+                <input type="text" id="classNumber" placeholder="Class Number" value="CS3004301"/>
                 <input type="text" id="IDField" placeholder="UID" value="" />
                 <input type="text" id="passwordField" placeholder="Password" value=""/>
                 <button id="Enter" onclick="sendLogging()">Log in</button>
@@ -42,7 +42,7 @@
 
     <script>
         // 檢查連接
-        const socket = io("http://localhost:4040");
+        const socket = io(":4040");
         const login ={id:"",pass:""};
         socket.on("connect", () => {
             console.log("Connected to server with ID:", socket.id);
@@ -131,7 +131,7 @@
                 },
                 mounted() {
                     // 在 Vue 實例初始化後建立 Socket.IO 連接
-                    this.socket = io("http://localhost:4040");
+                    this.socket = io(":4040");
         
                     // 接收所有訊息
                     this.socket.on("allMessage", (message) => {
