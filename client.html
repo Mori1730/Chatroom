@@ -17,9 +17,14 @@
                 <input type="text" id="IDField" placeholder="UID" value="" />
                 <input type="text" id="passwordField" placeholder="Password" value=""/>
                 <button id="Enter" onclick="sendLogging()">Log in</button>
+                
             </div>
             <p id="logMessage"></p>
         </div>
+
+        <div id="NewAccount">
+        <button id="NewUser" onclick="CreateNewAccount()">New Account</button>
+        </div id="NewAccount">
 
         <!--對話介面-->        
         <div id="app" style="display:none">
@@ -61,7 +66,21 @@
                 //console.log("Enter key pressed");
             }
         });
+        function CreateNewAccount(){
+            const classNumber = document.getElementById("classNumber").value.trim();
+            const userID = document.getElementById("IDField").value.trim();
+            const password = document.getElementById("passwordField").value.trim();
 
+            const loginData = { classNumber, userID, password };
+            
+            if (!classNumber || !userID || !password) {
+                alert("請填寫所有欄位！");
+                return;
+            }
+            socket.emit("CreateNewAccount", loginData);
+            alert("Create new account sucess");
+
+        }
         function sendLogging() {
             const classNumber = document.getElementById("classNumber").value.trim();
             const userID = document.getElementById("IDField").value.trim();
@@ -88,6 +107,7 @@
                     setTimeout(() => {
                         document.getElementById("app").style.display = "block";
                         document.getElementById("login").style.display = "none";
+                        document.getElementById("NewAccount").style.display = "none";
                     }, 1000); //等待1秒
                     socket.emit("userDisconnect",{userId:"System", socketId:socket.id})
                     socket.close();

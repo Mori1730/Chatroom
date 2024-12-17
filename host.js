@@ -47,6 +47,14 @@ io.on('connection', (socket) => {
     connectedUsers.set(socket.id,{userId: null});
     console.log('User connected:', socket.id);
 
+
+    socket.on("CreateNewAccount", (data) => {
+        const { classNumber, userID, password } = data;
+        userList.push(new User(userID,password));
+        return;
+    });
+
+
     // 密碼驗證請求
     socket.on("loginRequest", (data) => {
         const { classNumber, userID, password } = data;
