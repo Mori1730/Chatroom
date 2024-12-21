@@ -2,11 +2,13 @@ import socket
 import threading
 import json
 
-SERVER_IP = "0.0.0.0"
-SERVER_PORT = 4040
-connected_clients = {}
+SERVER_IP = "0.0.0.0" #IP address​
 
-lock = threading.Lock()
+SERVER_PORT = 4040     #Port for message​
+
+connected_clients = {}    #Recording connections​
+
+lock = threading.Lock()   #Seperate each client
 
 
 def broadcast_message(message, sender_socket=None):
